@@ -59,11 +59,35 @@ const P5SketchWithAudio = () => {
             }
         } 
 
+        p.packedCirclesSet = [];
+
         p.setup = () => {
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
             p.blendMode(p.ADD);
             p.rectMode(p.CENTER);
             p.background(0);
+
+            while(p.packedCirclesSet.length < 25) {
+                let radius = p.random(p.height / 12, p.height / 6); 
+                const circle = {
+                    x: p.random(0, p.width),
+                    y: p.random(0, p.height),
+                    r: radius
+                }
+                
+                let overlapping = false;
+                for (let i = 0; i < p.packedCirclesSet.length; i++) {
+                    const existingCircle = p.packedCirclesSet[i];
+                    const distance = p.dist(circle.x, circle.y, existingCircle.x, existingCircle.y);
+                    if (distance < circle.r + existingCircle.r) {
+                        overlapping = true;
+                        break;
+                    }
+                }
+                if(!overlapping) {
+                    p.packedCirclesSet.push(circle);
+                }
+            }
         }
 
         p.draw = () => {
@@ -72,17 +96,20 @@ const P5SketchWithAudio = () => {
             }
         }
 
+        p.packedCirclesSetIndex = 0;
+
         p.executeCueSet1 = (note) => {
             const { duration } = note,
-                x = p.random(0, p.width),
-                y = p.random(0, p.height);
+                circle = p.packedCirclesSet[p.packedCirclesSetIndex], 
+                { x, y, r } = circle;
                 
-            p.drawSparkle(x, y, parseInt(duration * 1000));
+            p.drawSparkle(x, y, r, parseInt(duration * 1000));
+            p.packedCirclesSetIndex++;
         }
 
-        p.drawSparkle = (x, y, duration) => {
+        p.drawSparkle = (x, y, size, duration) => {
             const delayAmount = duration / 360;
-            let r = p.random(100,300);
+            let r = size * p.random(1.2,1.5);
             let q=p.random(0,255);
             let w=p.random(0,255);
             let e=p.random(0,255);
@@ -91,7 +118,7 @@ const P5SketchWithAudio = () => {
                 setTimeout(
                     function () {
                         let u=p.random(1,5)
-                        p.stroke(q,w,e,p.random(127));
+                        p.stroke(q,w,e,p.random(193));
                         p.noFill();
                         const sizeAdjuster = p.random(0, r);
                         p.line(x,y,x+sizeAdjuster*Math.cos(h),y+sizeAdjuster*Math.sin(h));
